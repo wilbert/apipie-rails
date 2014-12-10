@@ -79,10 +79,18 @@ module Apipie
         %w[title verb path versions query request_data response_data code show_in_doc recorded].each do |k|
           next unless call.has_key?(k)
 
-            if k == 'verb' and (call[k] == :PUT or call[k] == :POST or call[k] == :DELETE or call[k] == :PATCH)
-              if call['path'].match(/#{Apipie.configuration.api_base_url['1.0']}/)
-                if call['request_data'].kind_of?(Hash)
-                  ordered_call['curl'] = "curl -X #{call['verb']} --data '#{URI.unescape(call['request_data'].to_query)}' #{Apipie.configuration.api_host}#{call['path']}"  
+            if k == 'verb' 
+              if call[k] == :PUT || call[k] == :POST || call[k] == :DELETE || call[k] == :PATCH
+                # binding.pry if call[k] == :PUT or call[k] == :PATCH
+
+                if call['path'].match(/#{Apipie.configuration.api_base_url['1.0']}/)
+                  if call['request_data'].kind_of?(Hash)
+                    ordered_call['curl'] = "curl -X #{call['verb']} --data '#{URI.unescape(call['request_data'].to_query)}' #{Apipie.configuration.api_host}#{call['path']}"  
+                  else
+                    if call['params'].kind_of?(Hash)
+                      ordered_call['curl'] = "curl -X #{call['verb']} --data '#{URI.unescape(call['params'].to_query)}' #{Apipie.configuration.api_host}#{call['path']}"  
+                    end
+                  end
                 end
               end
             end
