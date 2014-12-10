@@ -9,6 +9,7 @@ describe Apipie::Extractor::Writer do
   let(:records) { {
     "concern_resources#show" =>
       [{
+        :curl => "curl -X GET --data '' http://www.test.com", 
         :controller=>ConcernsController,
         :action=>"show",
         :verb=>:GET,

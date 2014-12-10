@@ -39,7 +39,7 @@ module Apipie
       def self.write_recorded_examples(examples)
         examples_file = self.examples_file
         FileUtils.mkdir_p(File.dirname(examples_file))
-        File.open(examples_file, "w") do |f|
+        File.open(examples_file, "w:ASCII-8BIT:UTF-8") do |f|
           f << JSON.pretty_generate(OrderedHash[*examples.sort_by(&:first).flatten(1)])
         end
       end
@@ -75,15 +75,28 @@ module Apipie
       def ordered_call(call)
         call = call.stringify_keys
         ordered_call = OrderedHash.new
+        
         %w[title verb path versions query request_data response_data code show_in_doc recorded].each do |k|
           next unless call.has_key?(k)
-          ordered_call[k] = case call[k]
+
+            if k == 'verb' and (call[k] == :PUT or call[k] == :POST or call[k] == :DELETE or call[k] == :PATCH)
+              if call['path'].match(/#{Apipie.configuration.api_base_url['1.0']}/)
+                if call['request_data'].kind_of?(Hash)
+                  ordered_call['curl'] = "curl -X #{call['verb']} --data '#{URI.unescape(call['request_data'].to_query)}' #{Apipie.configuration.api_host}#{call['path']}"  
+                end
+              end
+            end
+
+            ordered_call[k] = case call[k]
                        when ActiveSupport::HashWithIndifferentAccess
-                         JSON.parse(call[k].to_json) # to_hash doesn't work recursively and I'm too lazy to write the recursion:)
+                        begin
+                          JSON.parse(call[k].to_json) # to_hash doesn't work recursively and I'm too lazy to write the recursion:)  
+                        rescue Exception => e
+                        end
                        else
                          call[k]
                        end
-        end
+          end
         return ordered_call
       end
 
@@ -274,6 +287,8 @@ module Apipie
       end
 
       def generate_code(desc)
+        binding.pry
+
         code = "#{Apipie.configuration.generated_doc_disclaimer}\n"
         code << generate_apis_code(desc[:api])
         code << generate_params_code(desc[:params])
@@ -293,6 +308,7 @@ module Apipie
                    when "index"
                      "List #{name}"
                    end
+
 
           code << "api :#{api[:method]}, \"#{api[:path]}\""
           code << ", \"#{desc}\"" if desc

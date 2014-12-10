@@ -175,6 +175,7 @@ module Apipie
 
     def format_example(ex)
       example = ""
+      example << "// #{ex[:curl]}\n" if ex[:curl].present?  
       example << "// #{ex[:title]}\n" if ex[:title].present?
       example << "#{ex[:verb]} #{ex[:path]}"
       example << "?#{ex[:query]}" unless ex[:query].blank?
