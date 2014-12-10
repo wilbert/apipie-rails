@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'set'
 
 module Apipie
@@ -40,6 +42,11 @@ module Apipie
         examples_file = self.examples_file
         FileUtils.mkdir_p(File.dirname(examples_file))
         File.open(examples_file, "w:ASCII-8BIT:UTF-8") do |f|
+          examples.each do |example|
+            puts "\t\t\t\t\t\t\ Testing example: #{example.inspect}"
+            puts JSON.pretty_generate(example)
+          end
+
           f << JSON.pretty_generate(OrderedHash[*examples.sort_by(&:first).flatten(1)])
         end
       end
@@ -78,7 +85,6 @@ module Apipie
         
         %w[title verb path versions query request_data response_data code show_in_doc recorded].each do |k|
           next unless call.has_key?(k)
-
             if k == 'verb' 
               if call[k] == :PUT || call[k] == :POST || call[k] == :DELETE || call[k] == :PATCH
                 # binding.pry if call[k] == :PUT or call[k] == :PATCH
@@ -96,14 +102,15 @@ module Apipie
             end
 
             ordered_call[k] = case call[k]
-                       when ActiveSupport::HashWithIndifferentAccess
-                        begin
-                          JSON.parse(call[k].to_json) # to_hash doesn't work recursively and I'm too lazy to write the recursion:)  
-                        rescue Exception => e
-                        end
-                       else
-                         call[k]
-                       end
+              when ActiveSupport::HashWithIndifferentAccess
+                begin
+                  JSON.parse(call[k].to_json) # to_hash doesn't work recursively and I'm too lazy to write the recursion:)    
+                rescue Exception => e
+                  puts call[k]
+                end
+              else
+                call[k]
+              end
           end
         return ordered_call
       end
@@ -295,8 +302,6 @@ module Apipie
       end
 
       def generate_code(desc)
-        binding.pry
-
         code = "#{Apipie.configuration.generated_doc_disclaimer}\n"
         code << generate_apis_code(desc[:api])
         code << generate_params_code(desc[:params])

@@ -17,6 +17,7 @@ module Apipie
       end
 
       def ignore_call?(record)
+        return true if !record[:request_data].nil? and !record[:request_data].match(/Content-Type/).nil?
         return true unless record[:controller]
         return true if @ignored.include?(record[:controller].name)
         return true if @ignored.include?("#{Apipie.get_resource_name(record[:controller].name)}##{record[:action]}")
@@ -24,10 +25,10 @@ module Apipie
       end
 
       def handle_record(record)
-        add_to_records(record)
         if ignore_call?(record)
           Extractor.logger.info("REST_API: skipping #{record_to_s(record)}")
         else
+          add_to_records(record)
           refine_description(record)
         end
       end
