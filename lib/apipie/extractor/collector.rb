@@ -17,7 +17,7 @@ module Apipie
       end
 
       def ignore_call?(record)
-        return true if !record[:request_data].nil? and !record[:request_data].match(/Content-Type/).nil?
+        return true if !record[:request_data].nil? and !record[:request_data].kind_of?(ActiveSupport::HashWithIndifferentAccess) and !record[:request_data].kind_of?(Hash) and !record[:request_data].match(/Content-Type/).nil?
         return true unless record[:controller]
         return true if @ignored.include?(record[:controller].name)
         return true if @ignored.include?("#{Apipie.get_resource_name(record[:controller].name)}##{record[:action]}")

@@ -42,11 +42,6 @@ module Apipie
         examples_file = self.examples_file
         FileUtils.mkdir_p(File.dirname(examples_file))
         File.open(examples_file, "w:ASCII-8BIT:UTF-8") do |f|
-          examples.each do |example|
-            puts "\t\t\t\t\t\t\ Testing example: #{example.inspect}"
-            puts JSON.pretty_generate(example)
-          end
-
           f << JSON.pretty_generate(OrderedHash[*examples.sort_by(&:first).flatten(1)])
         end
       end
@@ -106,7 +101,7 @@ module Apipie
                 begin
                   JSON.parse(call[k].to_json) # to_hash doesn't work recursively and I'm too lazy to write the recursion:)    
                 rescue Exception => e
-                  puts call[k]
+                  # puts call[k]
                 end
               else
                 call[k]
